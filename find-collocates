@@ -1,0 +1,62 @@
+#!/usr/bin/env python
+
+import nltk
+import argparse
+import sys
+import unicodecsv as csv
+
+from nltk.collocations import *
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description='Find collocates in a corpus.')
+    parser.add_argument('corpus_directory',
+                        help='the corpus directory')
+    parser.add_argument('--cutoff-frequency', type=int, default=1,
+                        help='only include n-grams that occur at least '
+                             'CUTOFF_FREQUENCY times in the results')
+    parser.add_argument('--select-word', metavar='WORD', dest='selected_word',
+                        help='only include n-grams containing WORD in the '
+                             'results')
+    parser.add_argument('--number-of-results', type=int, default=100,
+                        help='limit number of results to NUMBER_OF_RESULTS')
+    args = parser.parse_args()
+    return args
+
+
+def corpus_words(directory):
+    filenames = '.*\.txt'
+    reader = nltk.corpus.PlaintextCorpusReader(directory, filenames)
+    return map(lambda w: w.lower(), reader.words())
+
+
+def collocate_finder(words, filter_func, cutoff_frequency):
+    finder = TrigramCollocationFinder.from_words(words)
+    finder.apply_ngram_filter(filter_func)
+    finder.apply_freq_filter(cutoff_frequency)
+    return finder
+
+
+def boring_ngram_fun(interesting_words):
+    if len(filter(None, interesting_words)) == 0:
+        return lambda *ngram: False
+    else:
+        return lambda *ngram: not any(w in interesting_words for w in ngram)
+
+
+def main():
+    args = parse_args()
+    corpus = corpus_words(args.corpus_directory)
+    filter_fun = boring_ngram_fun([args.selected_word])
+    finder = collocate_finder(corpus, filter_fun, args.cutoff_frequency)
+    measures = nltk.collocations.TrigramAssocMeasures()
+    scored_collocates = finder.score_ngrams(measures.pmi)
+
+    csv_writer = csv.writer(sys.stdout)
+    for c, s in scored_collocates:
+        f = finder.ngram_fd[c]
+        csv_writer.writerow(list(c) + [s, f])
+
+
+main()
