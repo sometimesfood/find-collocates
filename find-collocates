@@ -1,9 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import nltk
 import argparse
 import sys
-import unicodecsv as csv
+import csv
 
 from nltk.collocations import *
 
@@ -28,7 +28,7 @@ def parse_args():
 def corpus_words(directory):
     filenames = '.*\.txt'
     reader = nltk.corpus.PlaintextCorpusReader(directory, filenames)
-    return map(lambda w: w.lower(), reader.words())
+    return [w.lower() for w in reader.words()]
 
 
 def collocate_finder(words, filter_func, cutoff_frequency):
@@ -39,7 +39,9 @@ def collocate_finder(words, filter_func, cutoff_frequency):
 
 
 def boring_ngram_fun(interesting_words):
-    if len(filter(None, interesting_words)) == 0:
+    interesting_words = [w for w in interesting_words if w]
+
+    if len(interesting_words) == 0:
         return lambda *ngram: False
     else:
         return lambda *ngram: not any(w in interesting_words for w in ngram)

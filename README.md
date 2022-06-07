@@ -4,10 +4,10 @@ A primitive collocate extractor using NLTK.
 
 ## Dependencies
 
-Python 2.7 and NLTK. On Debian Jessie, these can be installed using
-`apt-get`:
+Python 3.9 and NLTK. On Debian Bullseye, these can be installed using
+`apt`:
 
-   sudo apt-get install python-nltk python-unicodecsv
+   sudo apt install python3-nltk
 
 ## Getting started
 
